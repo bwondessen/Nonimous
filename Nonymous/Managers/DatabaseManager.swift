@@ -5,4 +5,9 @@
 //  Created by Bruke Wondessen on 10/17/23.
 //
 
-import Foundation
+import FirebaseFirestore
+import FirebaseFirestoreSwift
+
+final class DatabaseManager {
+    static let shared = DatabaseManager()
+}
