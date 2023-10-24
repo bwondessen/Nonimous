@@ -12,37 +12,58 @@ struct ChatView: View {
     @State var text: String = ""
     
     var body: some View {
-        ZStack {
-            Color.theme.background.ignoresSafeArea()
-            
-            VStack {
-                ScrollView {
-                    VStack {
-                        ForEach(chatVM.mockData) { message in
-                            MessageView(message: message)
+        NavigationView {
+            ZStack {
+                Color.theme.background.ignoresSafeArea()
+                
+                VStack {
+                    ScrollView {
+                        VStack {
+                            ForEach(chatVM.mockData) { message in
+                                MessageView(message: message)
+                            }
                         }
                     }
-                }
-                
-                HStack {
-                    TextField("Hello there", text: $text, axis: .vertical)
-                        .padding()
-                        .bold()
                     
-                    Button {
-                        chatVM.sendMessage(text: text)
-                        text = ""
-                    } label: {
-                        Text("Send")
+                    HStack {
+                        TextField("Hello there", text: $text, axis: .vertical)
                             .padding()
-                            .background(Color.theme.accent)
-                            .foregroundColor(.white)
                             .bold()
-                            .cornerRadius(50)
-                            .padding(.trailing)
+                        
+                        Button {
+                            if text.count >= 1 {
+                                chatVM.sendMessage(text: text)
+                                text = ""
+                            }
+                        } label: {
+                            Text("Send")
+                                .padding()
+                                .background(Color.theme.accent)
+                                .foregroundColor(.white)
+                                .bold()
+                                .cornerRadius(50)
+                                .padding(.trailing)
+                        }
+                    }
+                    .background(.gray.opacity(0.10))
+                }
+            }
+            .navigationTitle("Chatroom")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        do {
+                            try AuthManager.shared.signOut()
+                            
+                        } catch {
+                            print("Error signing out")
+                        }
+                    } label: {
+                        Text("sign out")
+                            .foregroundStyle(Color.theme.accent)
                     }
                 }
-                .background(.gray.opacity(0.10))
             }
         }
     }
