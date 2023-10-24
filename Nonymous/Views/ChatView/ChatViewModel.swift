@@ -18,7 +18,8 @@ class ChatViewModel: ObservableObject {
         Message(userID: "582", text: "Let's hoop at 7 at the park then go to David's crib after", photoURL: "", createdAt: Date()),
         Message(userID: "921", text: "Bet. That sounds like a plan to me", photoURL: "", createdAt: Date()),
         Message(userID: "583", text: "I'll be there", photoURL: "", createdAt: Date()),
-        Message(userID: "123", text: "Same", photoURL: "", createdAt: Date())
+        Message(userID: "123", text: "Same", photoURL: "", createdAt: Date()),
+        Message(userID: "232", text: "Don't be late ya'll...", photoURL: "", createdAt: Date())
     ]
     
     func sendMessage(text: String) {
