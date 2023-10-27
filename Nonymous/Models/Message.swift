@@ -9,12 +9,20 @@ import Foundation
 
 struct Message: Decodable, Identifiable {
     let id = UUID()
-    let userID: String
+    let userUid: String
     let text: String
-    let photoURL: String
+    let photoURL: String?
     let createdAt: Date
     
     func isFromCurrentSender() -> Bool {
-        return true
+        guard let currentUser = AuthManager.shared.getCurrentUser() else {
+            return false
+        }
+        
+        if currentUser.uid == userUid {
+            return true
+        } else {
+            return false
+        }
     }
 }

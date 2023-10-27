@@ -22,6 +22,7 @@ struct MessageView: View {
                 .frame(maxWidth: 260, alignment: .leading)
                 .background(Color.theme.SendersBubbleBackground)
                 .cornerRadius(20)
+                .shadow(radius: 5)
                 
                 Image("profilePic")
                     .resizable()
@@ -37,6 +38,7 @@ struct MessageView: View {
                     .scaledToFill()
                     .frame(maxWidth: 40, maxHeight: 40)
                     .cornerRadius(20)
+                    .shadow(radius: 5)
                 
                 HStack {
                     Text(message.text)
@@ -53,5 +55,5 @@ struct MessageView: View {
 }
 
 #Preview {
-    MessageView(message: Message(userID: "123", text: "this is a message", photoURL: "photo URL", createdAt: Date()))
+    MessageView(message: Message(userUid: "123", text: "this is a message", photoURL: "photo URL", createdAt: Date()))
 }
