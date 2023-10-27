@@ -18,10 +18,10 @@ struct MessageView: View {
                         .foregroundStyle(.white)
                         .bold()
                         .padding()
+                        .background(Color.theme.SendersBubbleBackground)
+                        .cornerRadius(20)
                 }
-                .frame(maxWidth: 260, alignment: .leading)
-                .background(Color.theme.SendersBubbleBackground)
-                .cornerRadius(20)
+                .frame(maxWidth: 260, alignment: .trailing)
                 .shadow(radius: 5)
                 
                 Image("profilePic")
@@ -32,7 +32,7 @@ struct MessageView: View {
             }
             .frame(maxWidth: 360, alignment: .trailing)
         } else {
-            HStack {
+            HStack { 
                 Image("profilePic")
                     .resizable()
                     .scaledToFill()
@@ -44,10 +44,10 @@ struct MessageView: View {
                     Text(message.text)
                         .bold()
                         .padding()
+                        .background(Color.theme.othersBubbleBackground)
+                        .cornerRadius(20)
                 }
-                .frame(maxWidth: 260, alignment: .leading)
-                .background(Color.theme.othersBubbleBackground)
-                .cornerRadius(20)
+                .frame(maxWidth: 260, alignment: .trailing)
             }
             .frame(maxWidth: 360, alignment: .leading)
         }

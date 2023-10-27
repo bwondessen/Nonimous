@@ -38,7 +38,7 @@ final class DatabaseManager {
                 let msg = Message(userUid: userUid, text: text, photoURL: photoURL, createdAt: createdAt.dateValue())
                 messages.append(msg)
             }
-            completion(.success(messages))
+            completion(.success(messages.reversed()))
         }
     }
     
