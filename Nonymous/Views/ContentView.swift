@@ -8,36 +8,38 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State var showSignIn: Bool = true
+    @State var showSignIn: Bool
+    
+    init(showSignIn: Bool = true) {
+        self.showSignIn = AuthManager.shared.getCurrentUser() == nil
+    }
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                ChatView()
-            }
-            .navigationTitle("Nonymous")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        do {
-                            try AuthManager.shared.signOut()
-                            showSignIn = true
-                        } catch {
-                            print("Error signing out")
+        if showSignIn {
+            SignInView(showSignIn: $showSignIn)
+        } else {
+            NavigationView {
+                ZStack {
+                    ChatView()
+                }
+                .navigationTitle("Nonymous")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            do {
+                                try AuthManager.shared.signOut()
+                                showSignIn = true
+                            } catch {
+                                print("Error signing out")
+                            }
+                        } label: {
+                            Text("Sign out")
+                                .foregroundStyle(Color.theme.accent)
                         }
-                    } label: {
-                        Text("Sign out")
-                            .foregroundStyle(Color.theme.accent)
                     }
                 }
             }
-            .fullScreenCover(isPresented: $showSignIn) {
-                SignInView(showSignIn: $showSignIn)
-            }
-        }
-        .onAppear {
-            showSignIn = AuthManager.shared.getCurrentUser() == nil
         }
     }
 }

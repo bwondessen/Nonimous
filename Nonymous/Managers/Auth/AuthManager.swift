@@ -9,8 +9,6 @@ import Foundation
 import GoogleSignIn
 import GoogleSignInSwift
 import FirebaseAuth
-import CryptoKit
-import AuthenticationServices
 
 struct NonymousUser {
     let uid: String
@@ -37,8 +35,7 @@ final class AuthManager: NSObject {
     let auth = Auth.auth()
     
     // Sign in with Apple nonce
-    private var currentNonce: String?
-    private var completionHandler: ((Result<NonymousUser, AppleSinInError>) -> Void)? = nil
+    let signInApple = SignInApple()
     
     func getNonymousUser () -> NonymousUser? {
         guard let user = auth.currentUser else {
@@ -58,23 +55,31 @@ final class AuthManager: NSObject {
     }
     
     func signInWithApple(completion: @escaping (Result<NonymousUser, AppleSinInError>) -> Void) {
-        let nonce = randomNonceString()
-        currentNonce = nonce
-        completionHandler = completion
-        let appleIDProvider = ASAuthorizationAppleIDProvider()
-        let request = appleIDProvider.createRequest()
-        request.requestedScopes = [.fullName, .email]
-        request.nonce = sha256(nonce)
-        
-        guard let topVC = UIApplication.getTopViewController() else {
-            completion(.failure(.unableToGrabTopVC))
-            return
+        signInApple.startSignInWithAppleFlow { [weak self] result in
+            guard let strongSelf = self else {
+                return
+            }
+            
+            switch result {
+            case .success(let appleResult):
+                // Initialize a Firebase credential, including the user's full name
+                let credential = OAuthProvider.appleCredential(withIDToken: appleResult.idToken,
+                                                               rawNonce: appleResult.nonce,
+                                                               fullName: appleResult.fullName)
+                // Sign in with Firebase.
+                strongSelf.auth.signIn(with: credential) { (authResult, error) in
+                    guard let authResult = authResult, error == nil else {
+                        completion(.failure(.authSignInError))
+                        return
+                    }
+                    
+                    let user = NonymousUser(uid: authResult.user.uid, name: authResult.user.displayName ?? "Unknown", email: authResult.user.email, photoURL: authResult.user.photoURL?.absoluteString)
+                    completion(.success(user))
+                }
+            case .failure(let error):
+                completion(.failure(error))
+            }
         }
-        
-        let authorizationController = ASAuthorizationController(authorizationRequests: [request])
-        authorizationController.delegate = self
-        authorizationController.presentationContextProvider = topVC
-        authorizationController.performRequests()
     }
     
     func signInWithGoogle(completion: @escaping (Result<NonymousUser, GoogleSinInError>) -> Void ) {
@@ -114,99 +119,5 @@ final class AuthManager: NSObject {
     
     func signOut() throws {
         try auth.signOut()
-    }
-}
-
-// MARK: Sign in with Apple helpers
-
-extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
-    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        return ASPresentationAnchor(frame: .zero)
-    }
-    
-    private func randomNonceString(length: Int = 32) -> String {
-        precondition(length > 0)
-        var randomBytes = [UInt8](repeating: 0, count: length)
-        let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
-        if errorCode != errSecSuccess {
-            fatalError(
-                "Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(errorCode)"
-            )
-        }
-        
-        let charset: [Character] =
-        Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
-        
-        let nonce = randomBytes.map { byte in
-            // Pick a random character from the set, wrapping around if needed.
-            charset[Int(byte) % charset.count]
-        }
-        
-        return String(nonce)
-    }
-    
-    private func sha256(_ input: String) -> String {
-        let inputData = Data(input.utf8)
-        let hashedData = SHA256.hash(data: inputData)
-        let hashString = hashedData.compactMap {
-            String(format: "%02x", $0)
-        }.joined()
-        
-        return hashString
-    }
-    
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
-        if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
-            guard let nonce = currentNonce, let completionHandler = completionHandler else {
-                fatalError("Invalid state: A login callback was received, but no login request was sent.")
-            }
-            guard let appleIDToken = appleIDCredential.identityToken, let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-                print("Unable to fetch identity token")
-                completionHandler(.failure(.appleIDTokenError))
-                return
-            }
-            
-            let credential = OAuthProvider.appleCredential(withIDToken: idTokenString,
-                                                           rawNonce: nonce,
-                                                           fullName: appleIDCredential.fullName)
-            // Sign in with Firebase.
-            Auth.auth().signIn(with: credential) { (authResult, error) in
-                guard let authResult = authResult, error == nil else {
-                    completionHandler(.failure(.appleIDTokenError))
-                    return
-                }
-                
-                let user = NonymousUser(uid: authResult.user.uid, name: authResult.user.displayName ?? "Unknown", email: authResult.user.email, photoURL: authResult.user.photoURL?.absoluteString)
-                completionHandler(.success(user))
-            }
-        }
-    }
-
-      func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        // Handle error.
-        print("Sign in with Apple errored: \(error)")
-      }
-}
-
-extension UIViewController: ASAuthorizationControllerPresentationContextProviding {
-    public func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        return self.view.window!
-    }
-}
-
-extension UIApplication {
-    
-    class func getTopViewController(base: UIViewController? = UIApplication.shared.keyWindow?.rootViewController) -> UIViewController? {
-        
-        if let nav = base as? UINavigationController {
-            return getTopViewController(base: nav.visibleViewController)
-            
-        } else if let tab = base as? UITabBarController, let selected = tab.selectedViewController {
-            return getTopViewController(base: selected)
-            
-        } else if let presented = base?.presentedViewController {
-            return getTopViewController(base: presented)
-        }
-        return base
     }
 }

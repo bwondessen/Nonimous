@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SDWebImageSwiftUI
 
 struct MessageView: View {
     var message: Message
@@ -22,23 +23,39 @@ struct MessageView: View {
                         .cornerRadius(20)
                 }
                 .frame(maxWidth: 260, alignment: .trailing)
-                .shadow(radius: 5)
+                .shadow(radius: 1.5)
                 
-                Image("profilePic")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: 40, maxHeight: 40)
-                    .cornerRadius(20)
+                if let photoURL = message.fetchPhotoURL() {
+                    WebImage(url: photoURL)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: 40, maxHeight: 40)
+                        .cornerRadius(20)
+                } else {
+                    Image("profilePic")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: 40, maxHeight: 40)
+                        .cornerRadius(20)
+                }
             }
-            .frame(maxWidth: 360, alignment: .trailing)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .padding(.trailing)
         } else {
             HStack { 
-                Image("profilePic")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: 40, maxHeight: 40)
-                    .cornerRadius(20)
-                    .shadow(radius: 5)
+                if let photoURL = message.fetchPhotoURL() {
+                    WebImage(url: photoURL)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: 40, maxHeight: 40)
+                        .cornerRadius(20)
+                } else {
+                    Image("profilePic")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: 40, maxHeight: 40)
+                        .cornerRadius(20)
+                }
                 
                 HStack {
                     Text(message.text)
@@ -48,8 +65,10 @@ struct MessageView: View {
                         .cornerRadius(20)
                 }
                 .frame(maxWidth: 260, alignment: .trailing)
+                .shadow(radius: 1.5)
             }
-            .frame(maxWidth: 360, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.leading)
         }
     }
 }

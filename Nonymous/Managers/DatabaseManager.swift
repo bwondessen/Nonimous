@@ -32,7 +32,7 @@ final class DatabaseManager {
                 let data = doc.data()
                 let text = data["text"] as? String ?? "Error"
                 let userUid = data["userUid"] as? String ?? "Error"
-                let photoURL = data["photoURL"] as? String ?? "Error"
+                let photoURL = data["photoURL"] as? String
                 let createdAt = data["createdAt"] as? Timestamp ?? Timestamp()
                 
                 let msg = Message(userUid: userUid, text: text, photoURL: photoURL, createdAt: createdAt.dateValue())

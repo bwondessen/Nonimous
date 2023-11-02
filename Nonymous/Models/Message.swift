@@ -8,6 +8,10 @@
 import Foundation
 
 struct Message: Decodable, Identifiable {
+    enum MessageError: Error {
+        case noPhotoURL
+    }
+    
     let id = UUID()
     let userUid: String
     let text: String
@@ -24,5 +28,13 @@ struct Message: Decodable, Identifiable {
         } else {
             return false
         }
+    }
+    
+    func fetchPhotoURL() -> URL? {
+        guard let photoURLString = photoURL, let url = URL(string: photoURLString) else {
+            return nil
+        }
+        
+        return url
     }
 }
