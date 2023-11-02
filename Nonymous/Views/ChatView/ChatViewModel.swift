@@ -47,7 +47,6 @@ class ChatViewModel: ObservableObject {
         
         DatabaseManager.shared.sendMessageToDatabase(message: msg) { [weak self] success in
             if success {
-                self?.messages.append(msg)
                 completion(true)
             } else {
                 completion(false)

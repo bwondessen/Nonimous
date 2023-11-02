@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Message: Decodable, Identifiable {
+struct Message: Decodable, Identifiable, Equatable, Hashable {
     enum MessageError: Error {
         case noPhotoURL
     }

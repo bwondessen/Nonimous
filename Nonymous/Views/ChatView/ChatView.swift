@@ -13,10 +13,16 @@ struct ChatView: View {
     
     var body: some View {
         VStack {
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 8) {
-                    ForEach(chatVM.messages) { message in
-                        MessageView(message: message)
+            ScrollViewReader { scrollView in
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 8) {
+                        ForEach(Array(chatVM.messages.enumerated()), id: \.element) { index, message in
+                            MessageView(message: message)
+                                .id(index)
+                        }
+                        .onChange(of: chatVM.messages, initial: false) { oldValue, newValue in
+                            scrollView.scrollTo(chatVM.messages.count - 1, anchor: .bottom)
+                        }
                     }
                 }
             }
